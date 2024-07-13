@@ -6,7 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
 
-  // Dev only : display all routes
+  // Dev only, display all routes
   const server = app.getHttpServer();
   const router = server._events.request._router;
   const availableRoutes: [] = router.stack
