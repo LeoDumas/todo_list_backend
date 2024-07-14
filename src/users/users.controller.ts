@@ -1,9 +1,10 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { LoginUserDTO } from './dto/login-user.dto';
 import { Public } from '../auth/public.decorator';
+import { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -19,8 +20,15 @@ export class UsersController {
   }
 
   @Post('login')
-  @Public() // Public cause the user need to login to have his JWT
-  async login(@Body() loginUserDTO: LoginUserDTO) {
-    return this.authService.login(loginUserDTO);
+  @Public() // Public cause the user need to login to have their JWT
+  async login(@Body() loginUserDTO: LoginUserDTO, @Res() res: Response) {
+    const token = await this.authService.login(loginUserDTO);
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 3600000, // 1 hour
+    });
+    return res.status(HttpStatus.OK).send();
   }
 }
