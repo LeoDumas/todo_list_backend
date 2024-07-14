@@ -6,6 +6,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
 
+  app.enableCors({
+    origin: 'http://localhost:5173', // Temporary, authorize requests from vitejs
+    methods: 'GET,PUT,POST,DELETE',
+    credentials: true,
+  });
+
   // Dev only, display all routes
   const server = app.getHttpServer();
   const router = server._events.request._router;
