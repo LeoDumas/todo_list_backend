@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,9 @@ async function bootstrap() {
     methods: 'GET,PUT,POST,DELETE',
     credentials: true,
   });
+
+  // Needed to store the jwt in a httponly, secure, same-site cookie later
+  app.use(cookieParser());
 
   await app.listen(3000);
 
