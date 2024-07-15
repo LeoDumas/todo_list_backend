@@ -24,9 +24,9 @@ export class UsersController {
   async login(@Body() loginUserDTO: LoginUserDTO, @Res() res: Response) {
     const token = await this.authService.login(loginUserDTO);
     res.cookie('jwt', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      httpOnly: false,
+      secure: false, // Use HTTPS for production
+      // sameSite: 'none', // Needed for cross-site requests
       maxAge: 3600000, // 1 hour
     });
     return res.status(HttpStatus.OK).send();

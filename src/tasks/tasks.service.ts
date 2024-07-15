@@ -6,7 +6,7 @@ import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
 
 @Injectable()
-export class tasksService implements OnModuleInit {
+export class TasksService implements OnModuleInit {
   constructor(@InjectModel(Tasks.name) private tasksModel: Model<Tasks>) {}
 
   // This method runs once the module has been initialized to make sure that the collection exists
@@ -15,9 +15,12 @@ export class tasksService implements OnModuleInit {
   }
 
   // Create a task
-  async create(CreateTaskDTO: CreateTaskDTO): Promise<Tasks> {
-    const CreateTask = new this.tasksModel(CreateTaskDTO);
-    return CreateTask.save();
+  async create(createTaskDTO: CreateTaskDTO, userId: string): Promise<Tasks> {
+    const createTask = new this.tasksModel({
+      ...createTaskDTO,
+      responsible: userId,
+    });
+    return createTask.save();
   }
 
   // Make sure that the collection exists to avoid error if database is changed
@@ -30,23 +33,27 @@ export class tasksService implements OnModuleInit {
     }
   }
 
-  // Return all tasks front database
-  async findAll(): Promise<Tasks[]> {
-    return this.tasksModel.find().exec();
+  // Return all tasks for the user
+  async findAll(userId: string): Promise<Tasks[]> {
+    return this.tasksModel.find({ responsible: userId }).exec();
   }
 
-  // Return a single task based on its id
-  async findOne(id: string): Promise<Tasks> {
-    const task = await this.tasksModel.findById(id).exec();
+  // Return a single task based on its id and userId
+  async findOne(id: string, userId: string): Promise<Tasks> {
+    const task = await this.tasksModel
+      .findOne({ _id: id, responsible: userId })
+      .exec();
     if (!task) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
     return task;
   }
 
-  // Delete a task with id
-  async deleteOne(id: string): Promise<void> {
-    const result = await this.tasksModel.deleteOne({ _id: id }).exec();
+  // Delete a task with id and userId
+  async deleteOne(id: string, userId: string): Promise<void> {
+    const result = await this.tasksModel
+      .deleteOne({ _id: id, responsible: userId })
+      .exec();
     // If nothing is deleted send error
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -54,9 +61,15 @@ export class tasksService implements OnModuleInit {
   }
 
   // Edit one task
-  async updateOne(id: string, updateTaskDTO: UpdateTaskDTO): Promise<Tasks> {
+  async updateOne(
+    id: string,
+    updateTaskDTO: UpdateTaskDTO,
+    userId: string,
+  ): Promise<Tasks> {
     const updatedTask = await this.tasksModel
-      .findByIdAndUpdate(id, updateTaskDTO, { new: true })
+      .findOneAndUpdate({ _id: id, responsible: userId }, updateTaskDTO, {
+        new: true,
+      })
       .exec();
     if (!updatedTask) {
       throw new NotFoundException(`Task with ID "${id}" not found`);

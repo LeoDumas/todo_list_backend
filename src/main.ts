@@ -20,7 +20,7 @@ async function bootstrap() {
   // Dev only, display all routes
   const server = app.getHttpServer();
   const router = server._events.request._router;
-  const availableRoutes: [] = router.stack
+  const availableRoutes: { path: string; method: string }[] = router.stack
     .map((layer) => {
       if (layer.route) {
         return {
